@@ -25,6 +25,8 @@ const char C[2][2] = {
     {0x2, 0x3}
 };
 
+const char keyConstants[2] = {0x1, 0x2};
+
 const size_t blkSize = 4;
 
 const char msg[4] = {0x9, 0xC, 0x6, 0x3};
@@ -82,6 +84,15 @@ char* mMult(const char* blk) {
     return newBlk;
 }
 
+char* nextKey(const char* k, size_t current_iteration) {
+    char* newKey = new char[blkSize];
+    newKey[0] = (k[0] ^ substitutions.at(k[3])) ^ keyConstants[current_iteration];
+    newKey[1] = k[1] ^ newKey[0];
+    newKey[2] = k[2] ^ newKey[1];
+    newKey[3] = k[3] ^ newKey[2];
+    return newKey;
+}
+
 void printHexArray(const char* arr, size_t size) {
     for (size_t i = 0; i < size; i++) {
         std::cout << "0x" << std::hex << std::uppercase << (int)(unsigned char)arr[i] << " ";
@@ -112,11 +123,16 @@ int main() {
     std::cout << "mMult(blk): ";
     printHexArray(multiplied, blkSize);
 
+    char* newKey = nextKey(key, 0);
+    std::cout << "nextKey(key, 0): ";
+    printHexArray(newKey, blkSize);
+
     // Clean up dynamically allocated memory
     delete[] result;
     delete[] substituted;
     delete[] shifted;
     delete[] multiplied;
+    delete[] newKey;
 
     return 0;
 }
