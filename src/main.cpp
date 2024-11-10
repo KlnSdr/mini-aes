@@ -21,6 +21,8 @@ const std::map<char, char> substitutions {
     {0xF, 0x7},
 };
 
+const bool isVerbose = true;
+
 const char C[2][2] = {
     {0x3, 0x2},
     {0x2, 0x3}
@@ -104,7 +106,7 @@ void printHexArray(const char* arr, size_t size) {
     std::cout << std::dec << std::endl;
 }
 
-char* aes(const char* msg, const char* key, size_t iterations) {
+char* aes_encrypt(const char* msg, const char* key, size_t iterations) {
     char* keyAdd;
     char* substituted;
     char* shifted;
@@ -116,31 +118,30 @@ char* aes(const char* msg, const char* key, size_t iterations) {
     }
 
     for (size_t i = 0; i < iterations; i++) {
-        std::cout << "iteration " << i << " ===========" << std::endl;
-        std::cout << "msg: ";
-        printHexArray(msg, blkSize);
-
-        std::cout << "key: ";
-        printHexArray(newKey, blkSize);
-
         keyAdd = addKey(msg, newKey);
-        std::cout << "addKey(msg, key): ";
-        printHexArray(keyAdd, blkSize);
-
         substituted = sub(keyAdd);
-        std::cout << "sub(blk): ";
-        printHexArray(substituted, blkSize);
-
         shifted = shift(substituted);
-        std::cout << "shift(blk): ";
-        printHexArray(shifted, blkSize);
-
         multiplied = mMult(shifted);
-        std::cout << "mMult(blk): ";
-        printHexArray(multiplied, blkSize);
 
         if (i < iterations - 1) {
             newKey = nextKey(newKey, i);
+        }
+
+        if (isVerbose) {
+            std::cout << "iteration " << i << " ===========" << std::endl;
+            std::cout << "msg: ";
+            printHexArray(msg, blkSize);
+
+            std::cout << "key: ";
+            printHexArray(newKey, blkSize);
+            std::cout << "addKey(msg, key): ";
+            printHexArray(keyAdd, blkSize);
+            std::cout << "sub(blk): ";
+            printHexArray(substituted, blkSize);
+            std::cout << "shift(blk): ";
+            printHexArray(shifted, blkSize);
+            std::cout << "mMult(blk): ";
+            printHexArray(multiplied, blkSize);
             std::cout << "nextKey(key, " << i << "): ";
             printHexArray(newKey, blkSize);
         }
@@ -154,7 +155,8 @@ char* aes(const char* msg, const char* key, size_t iterations) {
 }
 
 int main() {
-    char* encrypted = aes(msg, key, 3);
+    char* encrypted = aes_encrypt(msg, key, 3);
+    printHexArray(encrypted, blkSize);
     delete[] encrypted;
     return 0;
 }
