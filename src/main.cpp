@@ -1,5 +1,6 @@
 #include<iostream>
 #include <map>
+#include <stdexcept>
 
 const std::map<char, char> substitutions {
     {0x0, 0xE},
@@ -85,6 +86,9 @@ char* mMult(const char* blk) {
 }
 
 char* nextKey(const char* k, size_t current_iteration) {
+    if (current_iteration > 1) {
+        throw std::invalid_argument("more rouds calculated then key constants implemented");
+    }
     char* newKey = new char[blkSize];
     newKey[0] = (k[0] ^ substitutions.at(k[3])) ^ keyConstants[current_iteration];
     newKey[1] = k[1] ^ newKey[0];
