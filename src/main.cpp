@@ -60,6 +60,28 @@ char* shift(const char* blk) {
     return shiftedBlk;
 }
 
+char mult(char a, char b) {
+    char result = 0;
+    for (int i = 0; i < 4; ++i) {
+        if ((a >> i) & 0x1) {
+            char shiftedB = b << i;
+            result ^= shiftedB;
+        }
+    }
+    return result;
+}
+
+char* mMult(const char* blk) {
+    char* newBlk = new char[blkSize];
+    
+    newBlk[0] = (mult(C[0][0], blk[0]) ^ mult(C[0][1], blk[1])) ^ 0x13;
+    newBlk[1] = (mult(C[1][0], blk[0]) ^ mult(C[1][1], blk[1])) ^ 0x13;
+    newBlk[2] = (mult(C[0][0], blk[2]) ^ mult(C[0][1], blk[3])) ^ 0x13;
+    newBlk[3] = (mult(C[1][0], blk[2]) ^ mult(C[1][1], blk[3])) ^ 0x13;
+    
+    return newBlk;
+}
+
 void printHexArray(const char* arr, size_t size) {
     for (size_t i = 0; i < size; i++) {
         std::cout << "0x" << std::hex << std::uppercase << (int)(unsigned char)arr[i] << " ";
@@ -86,10 +108,15 @@ int main() {
     std::cout << "shift(blk): ";
     printHexArray(shifted, blkSize);
 
+    char* multiplied = mMult(shifted);
+    std::cout << "mMult(blk): ";
+    printHexArray(multiplied, blkSize);
+
     // Clean up dynamically allocated memory
     delete[] result;
     delete[] substituted;
     delete[] shifted;
+    delete[] multiplied;
 
     return 0;
 }
