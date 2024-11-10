@@ -87,7 +87,7 @@ char* mMult(const char* blk) {
 
 char* nextKey(const char* k, size_t current_iteration) {
     if (current_iteration > 1) {
-        throw std::invalid_argument("more rouds calculated then key constants implemented");
+        throw std::invalid_argument("more iterations calculated then key constants implemented");
     }
     char* newKey = new char[blkSize];
     newKey[0] = (k[0] ^ substitutions.at(k[3])) ^ keyConstants[current_iteration];
@@ -104,39 +104,57 @@ void printHexArray(const char* arr, size_t size) {
     std::cout << std::dec << std::endl;
 }
 
-int main() {
-    std::cout << "msg: ";
-    printHexArray(msg, blkSize);
+char* aes(const char* msg, const char* key, size_t iterations) {
+    char* keyAdd;
+    char* substituted;
+    char* shifted;
+    char* multiplied;
+    char* newKey = new char[blkSize];
 
-    std::cout << "key: ";
-    printHexArray(key, blkSize);
+    for (size_t i = 0; i < blkSize; i++) {
+        newKey[i] = key[i];
+    }
 
-    char* result = addKey(msg, key);
-    std::cout << "addKey(msg, key): ";
-    printHexArray(result, blkSize);
+    for (size_t i = 0; i < iterations; i++) {
+        std::cout << "iteration " << i << " ===========" << std::endl;
+        std::cout << "msg: ";
+        printHexArray(msg, blkSize);
 
-    char* substituted = sub(result);
-    std::cout << "sub(blk): ";
-    printHexArray(substituted, blkSize);
+        std::cout << "key: ";
+        printHexArray(newKey, blkSize);
 
-    char* shifted = shift(substituted);
-    std::cout << "shift(blk): ";
-    printHexArray(shifted, blkSize);
+        keyAdd = addKey(msg, newKey);
+        std::cout << "addKey(msg, key): ";
+        printHexArray(keyAdd, blkSize);
 
-    char* multiplied = mMult(shifted);
-    std::cout << "mMult(blk): ";
-    printHexArray(multiplied, blkSize);
+        substituted = sub(keyAdd);
+        std::cout << "sub(blk): ";
+        printHexArray(substituted, blkSize);
 
-    char* newKey = nextKey(key, 0);
-    std::cout << "nextKey(key, 0): ";
-    printHexArray(newKey, blkSize);
+        shifted = shift(substituted);
+        std::cout << "shift(blk): ";
+        printHexArray(shifted, blkSize);
 
-    // Clean up dynamically allocated memory
-    delete[] result;
+        multiplied = mMult(shifted);
+        std::cout << "mMult(blk): ";
+        printHexArray(multiplied, blkSize);
+
+        if (i < iterations - 1) {
+            newKey = nextKey(newKey, i);
+            std::cout << "nextKey(key, " << i << "): ";
+            printHexArray(newKey, blkSize);
+        }
+    }
+    delete[] keyAdd;
     delete[] substituted;
     delete[] shifted;
-    delete[] multiplied;
     delete[] newKey;
 
+    return multiplied;
+}
+
+int main() {
+    char* encrypted = aes(msg, key, 3);
+    delete[] encrypted;
     return 0;
 }
