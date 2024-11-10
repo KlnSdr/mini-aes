@@ -21,7 +21,7 @@ SRC := $(wildcard $(SRCDIR)/**/*.cpp $(SRCDIR)/*.cpp)
 OBJ := $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(SRC))
 
 # Target binary
-TARGET := $(BINDIR)/iris.bin
+TARGET := $(BINDIR)/miniaes.bin
 
 # Compile rule
 $(TARGET): $(OBJ)

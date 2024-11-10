@@ -3,6 +3,8 @@
 #include <cstring>
 #include <stdexcept>
 
+// SCROLL DOWN TO SET MSG AND KEY
+
 const std::map<char, char> substitutions {
     {0x0, 0xE},
     {0x1, 0x4},
@@ -22,7 +24,7 @@ const std::map<char, char> substitutions {
     {0xF, 0x7},
 };
 
-const bool isVerbose = true;
+bool isVerbose = false;
 
 const char C[2][2] = {
     {0x3, 0x2},
@@ -32,10 +34,6 @@ const char C[2][2] = {
 const char keyConstants[2] = {0x1, 0x2};
 
 const size_t blkSize = 4;
-
-const char msg[8] = {0x9, 0xC, 0x6, 0x3, 0x9, 0xC, 0x6, 0x3};
-/* const char msg[4] = {0x9, 0xC, 0x6, 0x3}; */
-const char key[blkSize] = {0xC, 0x3, 0xF, 0x0};
 
 char* addKey(const char* blk, const char* key) {
     char* newBlk = new char[blkSize];
@@ -210,9 +208,22 @@ char* aes_encrypt(const char* msg, size_t msgLen, const char* key, size_t iterat
     return encrypted_msg;
 }
 
-int main() {
-    char* encrypted = aes_encrypt(msg, 8, key, 3);
-    printHexArray(encrypted, 8);
+const size_t msgLen = 7;
+const char msg[msgLen] = {0x9, 0xC, 0x6, 0x3, 0x9, 0x6};
+/* const char msg[4] = {0x9, 0xC, 0x6, 0x3}; */
+const char key[blkSize] = {0xC, 0x3, 0xF, 0x0};
+
+int main(int argc, char* argv[]) {
+    // Loop through all command-line arguments
+    for (int i = 1; i < argc; ++i) { // Start at 1 to skip program name
+        if (std::strcmp(argv[i], "-v") == 0) {
+            isVerbose = true;
+            break;
+        }
+    }
+
+    char* encrypted = aes_encrypt(msg, msgLen, key, 3);
+    printHexArray(encrypted, msgLen + ((blkSize - (msgLen % blkSize)) % blkSize));
     delete[] encrypted;
     return 0;
 }
