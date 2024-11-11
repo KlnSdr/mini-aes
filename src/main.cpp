@@ -24,6 +24,25 @@ const std::map<char, char> substitutions {
     {0xF, 0x7},
 };
 
+const std::map<char, char> strToNibble {
+    {'0', 0x0},
+    {'1', 0x1},
+    {'2', 0x2},
+    {'3', 0x3},
+    {'4', 0x4},
+    {'5', 0x5},
+    {'6', 0x6},
+    {'7', 0x7},
+    {'8', 0x8},
+    {'9', 0x9},
+    {'a', 0xA},
+    {'b', 0xB},
+    {'c', 0xC},
+    {'d', 0xD},
+    {'e', 0xE},
+    {'f', 0xF},
+};
+
 bool isVerbose = false;
 
 const char C[2][2] = {
@@ -208,13 +227,12 @@ char* aes_encrypt(const char* msg, size_t msgLen, const char* key, size_t iterat
     return encrypted_msg;
 }
 
-const size_t msgLen = 7;
-const char msg[msgLen] = {0x9, 0xC, 0x6, 0x3, 0x9, 0x6};
-/* const char msg[4] = {0x9, 0xC, 0x6, 0x3}; */
 const char key[blkSize] = {0xC, 0x3, 0xF, 0x0};
 
 int main(int argc, char* argv[]) {
     int iterations = 1;
+    char* message = {};
+    size_t messageLength = 0;
     // Loop through all command-line arguments
     for (int i = 1; i < argc; ++i) { // Start at 1 to skip program name
         if (std::strcmp(argv[i], "-v") == 0) {
@@ -229,11 +247,35 @@ int main(int argc, char* argv[]) {
                 std::cerr << "Error: -i flag requires an integer argument. defaulting to 1" << std::endl;
                 return 1;
             }
+        } else if (std::strcmp(argv[i], "-m") == 0) {
+            // Check if there’s another argument after "-i"
+            if (i + 1 < argc) {
+                message = argv[i + 1]; // Convert the next argument to an integer
+                messageLength = strlen(message);
+                i++; // Skip the next argument since we just processed it
+            } else {
+                std::cerr << "message not set" << std::endl;
+                return 1;
+            }
         }
     }
 
-    char* encrypted = aes_encrypt(msg, msgLen, key, iterations);
-    printHexArray(encrypted, msgLen + ((blkSize - (msgLen % blkSize)) % blkSize));
+    if (messageLength == 0) {
+        std::cerr << "no message given" << std::endl;
+        return 0;
+    }
+
+    for (size_t i = 0; i < messageLength; i++) {
+        char c = tolower(message[i]);
+        if (strToNibble.count(c) <= 0) {
+            std::cerr << "Err: message contains non-hex value: " << c << std::endl;
+            return 1;
+        }
+        message[i] = strToNibble.at(c);
+    }
+
+    char* encrypted = aes_encrypt(message, messageLength, key, iterations);
+    printHexArray(encrypted, messageLength + ((blkSize - (messageLength % blkSize)) % blkSize));
     delete[] encrypted;
     return 0;
 }

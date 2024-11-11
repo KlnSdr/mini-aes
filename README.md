@@ -9,3 +9,4 @@ a simple implementation of the mini-aes encryption algorithm
 ### command line options
 - `-v` verbose mode to print interim results
 - `-i <int>` number of iterations to run the encryption algorithm (maximum is currently 3)
+- `-m <string>` the message as a string of hex values (f.ex. `9C63F`). passing an empty message or a message not matching `([0-9][a-z][A-Z])+` will result in the termination of the programm
