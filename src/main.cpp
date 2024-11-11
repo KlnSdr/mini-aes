@@ -227,12 +227,12 @@ char* aes_encrypt(const char* msg, size_t msgLen, const char* key, size_t iterat
     return encrypted_msg;
 }
 
-const char key[blkSize] = {0xC, 0x3, 0xF, 0x0};
-
 int main(int argc, char* argv[]) {
     int iterations = 1;
     char* message = {};
     size_t messageLength = 0;
+    char* key = {};
+    size_t keyLen = 0;
     // Loop through all command-line arguments
     for (int i = 1; i < argc; ++i) { // Start at 1 to skip program name
         if (std::strcmp(argv[i], "-v") == 0) {
@@ -257,11 +257,29 @@ int main(int argc, char* argv[]) {
                 std::cerr << "message not set" << std::endl;
                 return 1;
             }
+        } else if (std::strcmp(argv[i], "-k") == 0) {
+            // Check if there’s another argument after "-i"
+            if (i + 1 < argc) {
+                key = argv[i + 1]; // Convert the next argument to an integer
+                keyLen = strlen(key);
+                i++; // Skip the next argument since we just processed it
+            } else {
+                std::cerr << "key not set" << std::endl;
+                return 1;
+            }
         }
     }
 
     if (messageLength == 0) {
         std::cerr << "no message given" << std::endl;
+        return 0;
+    }
+
+    if (keyLen == 0) {
+        std::cerr << "no key given" << std::endl;
+        return 0;
+    } else if (keyLen < blkSize) {
+        std::cerr << "key is too short" << std::endl;
         return 0;
     }
 
@@ -272,6 +290,15 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         message[i] = strToNibble.at(c);
+    }
+
+    for (size_t i = 0; i < keyLen; i++) {
+        char c = tolower(key[i]);
+        if (strToNibble.count(c) <= 0) {
+            std::cerr << "Err: key contains non-hex value: " << c << std::endl;
+            return 1;
+        }
+        key[i] = strToNibble.at(c);
     }
 
     char* encrypted = aes_encrypt(message, messageLength, key, iterations);
