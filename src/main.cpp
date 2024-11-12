@@ -24,6 +24,26 @@ const std::map<char, char> substitutions {
     {0xF, 0x7},
 };
 
+// TODO make it pretty
+const std::map<char, char> invSubstitutions {
+    {0xE, 0x0},
+    {0x4, 0x1},
+    {0xD, 0x2},
+    {0x1, 0x3},
+    {0x2, 0x4},
+    {0xF, 0x5},
+    {0xB, 0x6},
+    {0x8, 0x7},
+    {0x3, 0x8},
+    {0xA, 0x9},
+    {0x6, 0xA},
+    {0xC, 0xB},
+    {0x5, 0xC},
+    {0x9, 0xD},
+    {0x0, 0xE},
+    {0x7, 0xF},
+};
+
 const std::map<char, char> strToNibble {
     {'0', 0x0},
     {'1', 0x1},
@@ -66,6 +86,14 @@ char* sub(const char* blk) {
     char* newBlk = new char[blkSize];
     for (size_t i = 0; i < blkSize; i++) {
         newBlk[i] =  substitutions.at(blk[i] & 0xF);
+    }
+    return newBlk;
+}
+
+char* invSub(const char* blk) {
+    char* newBlk = new char[blkSize];
+    for (size_t i = 0; i < blkSize; i++) {
+        newBlk[i] = invSubstitutions.at(blk[i] & 0xF);
     }
     return newBlk;
 }
@@ -163,6 +191,38 @@ char* aes_encrypt_block(const char* message, const char* key) {
     return multiplied;
 }
 
+char* aes_decrypt_block(const char* message, const char* key) {
+    char* keyAdd;
+    char* substituted;
+    char* shifted;
+    char* multiplied;
+
+    multiplied = mMult(message);
+    shifted = shift(multiplied);
+    substituted = invSub(shifted);
+    keyAdd = addKey(substituted, key);
+    if (isVerbose) {
+        std::cout << "message: ";
+        printHexArray(message, blkSize);
+
+        std::cout << "key: ";
+        printHexArray(key, blkSize);
+        std::cout << "addKey(message, key): ";
+        printHexArray(keyAdd, blkSize);
+        std::cout << "invSub(blk): ";
+        printHexArray(substituted, blkSize);
+        std::cout << "shift(blk): ";
+        printHexArray(shifted, blkSize);
+        std::cout << "mMult(blk): ";
+        printHexArray(multiplied, blkSize);
+    }
+    delete[] multiplied;
+    delete[] substituted;
+    delete[] shifted;
+
+    return keyAdd;
+}
+
 char* zeroPad(const char* message, size_t msgLen, size_t &paddedLength) {
     size_t paddingSize = (blkSize - (msgLen % blkSize)) % blkSize;
     paddedLength = msgLen + paddingSize;
@@ -206,6 +266,57 @@ char* aes_encrypt(const char* msg, size_t msgLen, const char* key, size_t iterat
                 blk[j] = encrypted_msg[j + (blkNum * blkSize)];
             }
             blk = aes_encrypt_block(blk, newKey);
+            // copy block to encrypted message
+            for (size_t j = 0; j < blkSize; j++) {
+                encrypted_msg[j + (blkNum * blkSize)] = blk[j];
+            }
+            delete[] blk;
+        }
+
+        if (i < iterations - 1) {
+            newKey = nextKey(newKey, i);
+        }
+
+        if (isVerbose) {
+            std::cout << "nextKey(key, " << i << "): ";
+            printHexArray(newKey, blkSize);
+        }
+    }
+    delete[] newKey;
+
+    return encrypted_msg;
+}
+
+char* aes_decrypt(const char* msg, size_t msgLen, const char* key, size_t iterations) {
+    char* newKey = new char[blkSize];
+    char* encrypted_msg;
+
+    // copy key
+    for (size_t i = 0; i < blkSize; i++) {
+        newKey[i] = key[i];
+    }
+
+    // TODO make pretty
+    encrypted_msg = new char[msgLen];
+    for (size_t i = 0; i < msgLen; i++) {
+        encrypted_msg[i] = msg[i];
+    }
+
+    for (size_t i = 0; i < iterations; i++) {
+        if (isVerbose) {
+            std::cout << "iteration " << i << " ===========" << std::endl;
+        }
+
+        for (size_t blkNum = 0; blkNum < msgLen/blkSize; blkNum++) {
+            if (isVerbose) {
+                std::cout << "block " << blkNum << std::endl;
+            }
+            char* blk = new char[blkSize];
+            // extract next block
+            for (size_t j = 0; j < blkSize; j++) {
+                blk[j] = encrypted_msg[j + (blkNum * blkSize)];
+            }
+            blk = aes_decrypt_block(blk, newKey);
             // copy block to encrypted message
             for (size_t j = 0; j < blkSize; j++) {
                 encrypted_msg[j + (blkNum * blkSize)] = blk[j];
@@ -303,6 +414,9 @@ int main(int argc, char* argv[]) {
 
     char* encrypted = aes_encrypt(message, messageLength, key, iterations);
     printHexArray(encrypted, messageLength + ((blkSize - (messageLength % blkSize)) % blkSize));
+
+    char* decrypted = aes_decrypt(encrypted, messageLength, key, iterations);
+    printHexArray(decrypted, messageLength + ((blkSize - (messageLength % blkSize)) % blkSize));
     delete[] encrypted;
     return 0;
 }
