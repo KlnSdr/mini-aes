@@ -347,10 +347,26 @@ char* aes_decrypt(const char* msg, size_t msgLen, const char* key, size_t iterat
             std::cout << "next key: ";
             printHexArray(keys[iterations - i - 2], blkSize);
         }
+        delete[] keys[iterations - i - 1];
     }
     delete[] keys;
 
     return encrypted_msg;
+}
+
+void printHelp() {
+    std::cout << "mini-aes implements the mini aes specification by Raphael Chung-Wei Phan" << std::endl;
+    std::cout << std::endl;
+    std::cout << "usage: miniaes [options]" << std::endl;
+    std::cout << std::endl;
+    std::cout << "options:" << std::endl;
+    std::cout << "-h:\t\tdisplay this help" << std::endl;
+    std::cout << "-v:\t\tenable verbose output to print each step separatly" << std::endl;
+    std::cout << "-e:\t\trun the encryption algorithm" << std::endl;
+    std::cout << "-d:\t\trun the decryption algorithm" << std::endl;
+    std::cout << "-i <int>:\tspecify the number of iterations to run. must be a value in [0, 3]" << std::endl;
+    std::cout << "-k <string>:\tset the key. must match ([0-9][a-z][A-Z])+. must be at least 4 symbols long. if the key is longer than 4 symbols only the first 4 are used." << std::endl;
+    std::cout << "-m <string>:\tset the message to be encrypted/decrypted. must match ([0-9][a-z][A-Z])+. must be at least 1 symbol long. if the message can't be split into blocks of 2 bytes/4 nibbles zero-padding is applied." << std::endl;
 }
 
 int main(int argc, char* argv[]) {
@@ -368,6 +384,9 @@ int main(int argc, char* argv[]) {
             doEncrypt = true;
         } else if (std::strcmp(argv[i], "-d") == 0) {
             doEncrypt = false;
+        } else if (std::strcmp(argv[i], "-h") == 0) {
+            printHelp();
+            return 0;
         } else if (std::strcmp(argv[i], "-i") == 0) {
             // Check if there’s another argument after "-i"
             if (i + 1 < argc) {

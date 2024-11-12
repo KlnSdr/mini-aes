@@ -12,3 +12,4 @@ a simple implementation of the mini-aes encryption algorithm
 - `-k <string>` the key as a string of hex values (f.ex. `9C63F`). passing an empty message or a message not matching `([0-9][a-z][A-Z])+` will result in the termination of the programm. if len(key) < `blkSize` the program will terminate. if len(key) > `blkSize` only the bytes with index < `blkSize` will be used
 - `-e` encrypt the message (default)
 - `-d` decrypt the message
+- `-h` display the help
