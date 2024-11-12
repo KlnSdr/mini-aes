@@ -364,13 +364,10 @@ int main(int argc, char* argv[]) {
     for (int i = 1; i < argc; ++i) { // Start at 1 to skip program name
         if (std::strcmp(argv[i], "-v") == 0) {
             isVerbose = true;
-            break;
         } else if (std::strcmp(argv[i], "-e") == 0) {
             doEncrypt = true;
-            break;
         } else if (std::strcmp(argv[i], "-d") == 0) {
             doEncrypt = false;
-            break;
         } else if (std::strcmp(argv[i], "-i") == 0) {
             // Check if there’s another argument after "-i"
             if (i + 1 < argc) {
