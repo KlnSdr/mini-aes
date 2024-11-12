@@ -201,21 +201,20 @@ char* aes_decrypt_block(const char* message, const char* key) {
     shifted = shift(multiplied);
     substituted = invSub(shifted);
     keyAdd = addKey(substituted, key);
-    /* if (isVerbose) { */
-    /*     std::cout << "message: "; */
-    /*     printHexArray(message, blkSize); */
-
-    /*     std::cout << "key: "; */
-    /*     printHexArray(key, blkSize); */
-    /*     std::cout << "addKey(message, key): "; */
-    /*     printHexArray(keyAdd, blkSize); */
-    /*     std::cout << "invSub(blk): "; */
-    /*     printHexArray(substituted, blkSize); */
-    /*     std::cout << "shift(blk): "; */
-    /*     printHexArray(shifted, blkSize); */
-    /*     std::cout << "mMult(blk): "; */
-    /*     printHexArray(multiplied, blkSize); */
-    /* } */
+    if (isVerbose) {
+        std::cout << "message: ";
+        printHexArray(message, blkSize);
+        std::cout << "key: ";
+        printHexArray(key, blkSize);
+        std::cout << "mMult(blk): ";
+        printHexArray(multiplied, blkSize);
+        std::cout << "shift(blk): ";
+        printHexArray(shifted, blkSize);
+        std::cout << "invSub(blk): ";
+        printHexArray(substituted, blkSize);
+        std::cout << "addKey(message, key): ";
+        printHexArray(keyAdd, blkSize);
+    }
     delete[] multiplied;
     delete[] substituted;
     delete[] shifted;
@@ -240,6 +239,12 @@ char* zeroPad(const char* message, size_t msgLen, size_t &paddedLength) {
 }
 
 char* aes_encrypt(const char* msg, size_t msgLen, const char* key, size_t iterations) {
+    if (isVerbose) {
+        std::cerr << "+==================+" << std::endl;
+        std::cerr << "|    encrypting    |" << std::endl;
+        std::cerr << "+==================+" << std::endl;
+    }
+
     char* newKey = new char[blkSize];
     char* encrypted_msg;
 
@@ -288,6 +293,12 @@ char* aes_encrypt(const char* msg, size_t msgLen, const char* key, size_t iterat
 }
 
 char* aes_decrypt(const char* msg, size_t msgLen, const char* key, size_t iterations) {
+    if (isVerbose) {
+        std::cerr << "+==================+" << std::endl;
+        std::cerr << "|    decrypting    |" << std::endl;
+        std::cerr << "+==================+" << std::endl;
+    }
+
     char** keys = new char*[iterations];
     char* keyCopy = new char[blkSize];
 
@@ -311,9 +322,9 @@ char* aes_decrypt(const char* msg, size_t msgLen, const char* key, size_t iterat
     }
 
     for (size_t i = 0; i < iterations; i++) {
-        /* if (isVerbose) { */
-        /*     std::cout << "iteration " << i << " ===========" << std::endl; */
-        /* } */
+        if (isVerbose) {
+            std::cout << "iteration " << i << " ===========" << std::endl;
+        }
 
         for (size_t blkNum = 0; blkNum < msgLen/blkSize; blkNum++) {
             if (isVerbose) {
@@ -332,13 +343,10 @@ char* aes_decrypt(const char* msg, size_t msgLen, const char* key, size_t iterat
             delete[] blk;
         }
 
-        /* if (i < iterations - 1) { */
-        /* } */
-
-        /* if (isVerbose) { */
-        /*     std::cout << "nextKey(key, " << i << "): "; */
-        /*     printHexArray(newKey, blkSize); */
-        /* } */
+        if (isVerbose && i < iterations - 1) {
+            std::cout << "next key: ";
+            printHexArray(keys[iterations - i - 2], blkSize);
+        }
     }
     delete[] keys;
 
