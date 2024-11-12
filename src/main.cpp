@@ -359,10 +359,17 @@ int main(int argc, char* argv[]) {
     size_t messageLength = 0;
     char* key = {};
     size_t keyLen = 0;
+    bool doEncrypt = true;
     // Loop through all command-line arguments
     for (int i = 1; i < argc; ++i) { // Start at 1 to skip program name
         if (std::strcmp(argv[i], "-v") == 0) {
             isVerbose = true;
+            break;
+        } else if (std::strcmp(argv[i], "-e") == 0) {
+            doEncrypt = true;
+            break;
+        } else if (std::strcmp(argv[i], "-d") == 0) {
+            doEncrypt = false;
             break;
         } else if (std::strcmp(argv[i], "-i") == 0) {
             // Check if there’s another argument after "-i"
@@ -427,12 +434,15 @@ int main(int argc, char* argv[]) {
         key[i] = strToNibble.at(c);
     }
 
-    char* encrypted = aes_encrypt(message, messageLength, key, iterations);
-    printHexArray(encrypted, messageLength + ((blkSize - (messageLength % blkSize)) % blkSize));
+    char* result;
 
-    char* decrypted = aes_decrypt(encrypted, messageLength, key, iterations);
-    printHexArray(decrypted, messageLength + ((blkSize - (messageLength % blkSize)) % blkSize));
-    delete[] encrypted;
-    delete[] decrypted;
+    if (doEncrypt) {
+        result = aes_encrypt(message, messageLength, key, iterations);
+    } else {
+        result = aes_decrypt(message, messageLength, key, iterations);
+    }
+
+    printHexArray(result, messageLength + ((blkSize - (messageLength % blkSize)) % blkSize));
+    delete[] result;
     return 0;
 }
