@@ -201,21 +201,21 @@ char* aes_decrypt_block(const char* message, const char* key) {
     shifted = shift(multiplied);
     substituted = invSub(shifted);
     keyAdd = addKey(substituted, key);
-    if (isVerbose) {
-        std::cout << "message: ";
-        printHexArray(message, blkSize);
+    /* if (isVerbose) { */
+    /*     std::cout << "message: "; */
+    /*     printHexArray(message, blkSize); */
 
-        std::cout << "key: ";
-        printHexArray(key, blkSize);
-        std::cout << "addKey(message, key): ";
-        printHexArray(keyAdd, blkSize);
-        std::cout << "invSub(blk): ";
-        printHexArray(substituted, blkSize);
-        std::cout << "shift(blk): ";
-        printHexArray(shifted, blkSize);
-        std::cout << "mMult(blk): ";
-        printHexArray(multiplied, blkSize);
-    }
+    /*     std::cout << "key: "; */
+    /*     printHexArray(key, blkSize); */
+    /*     std::cout << "addKey(message, key): "; */
+    /*     printHexArray(keyAdd, blkSize); */
+    /*     std::cout << "invSub(blk): "; */
+    /*     printHexArray(substituted, blkSize); */
+    /*     std::cout << "shift(blk): "; */
+    /*     printHexArray(shifted, blkSize); */
+    /*     std::cout << "mMult(blk): "; */
+    /*     printHexArray(multiplied, blkSize); */
+    /* } */
     delete[] multiplied;
     delete[] substituted;
     delete[] shifted;
@@ -288,13 +288,21 @@ char* aes_encrypt(const char* msg, size_t msgLen, const char* key, size_t iterat
 }
 
 char* aes_decrypt(const char* msg, size_t msgLen, const char* key, size_t iterations) {
-    char* newKey = new char[blkSize];
-    char* encrypted_msg;
+    char** keys = new char*[iterations];
+    char* keyCopy = new char[blkSize];
 
-    // copy key
+    // TODO make pretty
     for (size_t i = 0; i < blkSize; i++) {
-        newKey[i] = key[i];
+        keyCopy[i] = key[i];
     }
+
+    keys[0] = keyCopy;
+
+    for (size_t i = 1; i <iterations; i++) {
+        keys[i] = nextKey(keys[i - 1], i - 1);
+    }
+
+    char* encrypted_msg;
 
     // TODO make pretty
     encrypted_msg = new char[msgLen];
@@ -303,9 +311,9 @@ char* aes_decrypt(const char* msg, size_t msgLen, const char* key, size_t iterat
     }
 
     for (size_t i = 0; i < iterations; i++) {
-        if (isVerbose) {
-            std::cout << "iteration " << i << " ===========" << std::endl;
-        }
+        /* if (isVerbose) { */
+        /*     std::cout << "iteration " << i << " ===========" << std::endl; */
+        /* } */
 
         for (size_t blkNum = 0; blkNum < msgLen/blkSize; blkNum++) {
             if (isVerbose) {
@@ -316,7 +324,7 @@ char* aes_decrypt(const char* msg, size_t msgLen, const char* key, size_t iterat
             for (size_t j = 0; j < blkSize; j++) {
                 blk[j] = encrypted_msg[j + (blkNum * blkSize)];
             }
-            blk = aes_decrypt_block(blk, newKey);
+            blk = aes_decrypt_block(blk, keys[iterations - i - 1]);
             // copy block to encrypted message
             for (size_t j = 0; j < blkSize; j++) {
                 encrypted_msg[j + (blkNum * blkSize)] = blk[j];
@@ -324,16 +332,15 @@ char* aes_decrypt(const char* msg, size_t msgLen, const char* key, size_t iterat
             delete[] blk;
         }
 
-        if (i < iterations - 1) {
-            newKey = nextKey(newKey, i);
-        }
+        /* if (i < iterations - 1) { */
+        /* } */
 
-        if (isVerbose) {
-            std::cout << "nextKey(key, " << i << "): ";
-            printHexArray(newKey, blkSize);
-        }
+        /* if (isVerbose) { */
+        /*     std::cout << "nextKey(key, " << i << "): "; */
+        /*     printHexArray(newKey, blkSize); */
+        /* } */
     }
-    delete[] newKey;
+    delete[] keys;
 
     return encrypted_msg;
 }
@@ -418,5 +425,6 @@ int main(int argc, char* argv[]) {
     char* decrypted = aes_decrypt(encrypted, messageLength, key, iterations);
     printHexArray(decrypted, messageLength + ((blkSize - (messageLength % blkSize)) % blkSize));
     delete[] encrypted;
+    delete[] decrypted;
     return 0;
 }
